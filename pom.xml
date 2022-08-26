@@ -16,6 +16,7 @@
 	<properties>
 		<java.version>11</java.version>
 		<joinfaces.version>4.7.0</joinfaces.version>
+		<ultima-version>2.0.0</ultima-version>
 	</properties>
 
 	<dependencyManagement>
@@ -27,7 +28,7 @@
 				<type>pom</type>
 				<scope>import</scope>
 			</dependency>
-			
+
 			<dependency>
 				<groupId>org.apache.maven</groupId>
 				<artifactId>maven-model</artifactId>
@@ -134,14 +135,14 @@
 		</dependency>
 
 		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-data-jpa</artifactId>
+			<groupId>org.primefaces.themes</groupId>
+			<artifactId>ultima-theme</artifactId>
+			<version>${ultima-version}</version>
 		</dependency>
 
-		<!-- https://mvnrepository.com/artifact/org.springframework.data/spring-data-envers -->
 		<dependency>
-			<groupId>org.springframework.data</groupId>
-			<artifactId>spring-data-envers</artifactId>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-data-jpa</artifactId>
 		</dependency>
 
 
@@ -151,6 +152,14 @@
 		</dependency>
 
 	</dependencies>
+
+	<repositories>
+		<repository>
+			<id>ati-repository</id>
+			<url>https://repo.jenkins.ati.to.gov.br/releases</url>
+		</repository>
+
+	</repositories>
 
 	<build>
 		<plugins>

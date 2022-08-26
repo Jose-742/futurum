@@ -1,0 +1,62 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+				xmlns:h="http://xmlns.jcp.org/jsf/html"
+				xmlns:f="http://xmlns.jcp.org/jsf/core"
+				xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+				xmlns:p="http://primefaces.org/ui"
+				template="/templates/index.xhtml">
+	<ui:define name="meta">
+		
+	</ui:define>
+	<ui:define name="title">
+		Login
+	</ui:define>
+	<ui:define name="content">
+		<div class="ui-fluid" style="text-align: center;">
+			<p:messages id="messages" closable="true">
+				<p:autoUpdate/>
+			</p:messages>
+		</div>
+		<h:body styleClass="acesso-body">
+			<div id="wrapper" class="wrapper">
+				<div class="card login-panel ui-fluid">
+					<div class="ui-g">
+						<h:form id="loginForm" prependId="false">
+							<div class="ui-g-12">
+								<p:graphicImage styleClass="login-logo" name="refis_login.svg" library="img"
+												style="margin-bottom: 25px;"/>
+								<h2 class="login-title">EGEFAZ</h2>
+							</div>
+							<div class="ui-g-12">
+								<h:panelGroup styleClass="md-inputfield">
+									<p:inputText id="login" styleClass="cpf_login"/>
+									<p:outputLabel for="login" value="CPF"/>
+								</h:panelGroup>
+							</div>
+							<div class="ui-g-12">
+								<h:panelGroup styleClass="md-inputfield">
+									<p:password id="senha" styleClass="senha_login"/>
+									<p:outputLabel for="senha" value="Senha"/>
+								</h:panelGroup>
+							</div>
+							<div class="ui-g-12">
+								<p:commandButton value="Entrar"
+												 ajax="false" icon="fa fa-sign-in"
+												 style="margin-top:0; margin-bottom:10px;"/>
+							</div>
+						</h:form>
+						<!-- Para que o loader apareça quando realizar o login -->
+						<h:outputScript>
+							$('#loginForm').submit(function () {
+								startLoading();
+								return true;
+							});
+							jQuery(function ($) {
+								$('#login').mask('000.000.000-00');
+							});
+						</h:outputScript>
+					</div>
+				</div>
+			</div>
+		</h:body>
+	</ui:define>
+</ui:composition>
