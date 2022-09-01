@@ -1,0 +1,101 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://xmlns.jcp.org/jsf/html"
+                xmlns:f="http://xmlns.jcp.org/jsf/core"
+                xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+                xmlns:p="http://primefaces.org/ui"
+                template="/templates/index.xhtml">
+
+	<f:metadata>
+		<f:viewParam name="idElemento" value="#{perfilController.idElemento}"/>
+		<f:viewAction action="#{perfilController.init}"/>
+	</f:metadata>
+
+	<ui:define name="breadcrumb">
+		<h:form id="bread">
+			<p:breadCrumb>
+				<p:menuitem value="Home" outcome="pretty:pagina-inicial"/>
+				<p:menuitem value="Gerenciar Perfil" outcome="pretty:lista-perfil"/>
+				<p:menuitem value="Adicionar Perfil" url="" rendered="#{perfilController.idElemento eq null}"/>
+				<p:menuitem value="Editar Perfil" url="" rendered="#{perfilController.idElemento ne null}"/>
+			</p:breadCrumb>
+		</h:form>
+	</ui:define>
+
+	<ui:define name="content">
+		<h:form id="form_1">
+			<div class="card">
+				<h1>Cadastro de Perfil</h1>
+
+				<p:messages id="messages" closable="true">
+					<p:autoUpdate/>
+				</p:messages>
+
+				<p:fieldset legend="Dados do Perfil">
+					<h:panelGroup layout="block" styleClass="ui-g-12 ui-fluid">
+						<h:panelGroup styleClass="ui-g-12 ui-md-12 ui-lg-12" layout="block">
+							<p:panelGrid layout="grid" columns="2">
+								<h:panelGroup styleClass="md-inputfield">
+									<p:inputText id="nome" size="70"
+									             value="#{perfilController.vrPerfil.nome}">
+										<p:ajax event="keyup" update="pnlSalvar"
+										        listener="#{perfilController.verificarCampoObrigatorio}"/>
+									</p:inputText>
+									<p:outputLabel value="Nome *" for="nome"/>
+								</h:panelGroup>
+
+								<h:panelGroup>
+									<p:outputLabel value="Ativo: " styleClass="texto-negrito" for="ativo"/>
+									<p:selectBooleanCheckbox id="ativo"
+									                         value="#{perfilController.vrPerfil.ativo}"/>
+								</h:panelGroup>
+							</p:panelGrid>
+						</h:panelGroup>
+					</h:panelGroup>
+
+					<h:panelGroup id="pnlSalvar" layout="block" styleClass="ui-g-12 action-button-group">
+						<p:commandButton value="Cancelar" action="pretty:lista-perfil" process="@this"
+						                 icon="fa fa-times-circle-o"/>
+						<p:commandButton id="btnSalvar" value="Salvar" icon="ui-icon-save" update="confirmarAcaoPerfil"
+						                 disabled="#{perfilController.bAtivarBotaoSalvar eq false}"
+						                 title="Salvar o perfil" oncomplete="PF('confirmarAcaoPerfil').show()"/>
+					</h:panelGroup>
+				</p:fieldset>
+			</div>
+
+			<!-- Dialog de confirmacao do cadastro/edicao do menu -->
+			<p:dialog id="confirmarAcaoPerfil" widgetVar="confirmarAcaoPerfil"
+			          header="Confirmação de #{perfilController.vrPerfil.id ne null ? 'Edição' : 'Cadastro'}"
+			          modal="true" responsive="true" resizable="false" draggable="false"
+			          dynamic="true" closeOnEscape="true" styleClass="dialog-dinamico">
+
+				<h:panelGroup layout="block" styleClass="ui-fluid">
+					<p:outputLabel
+							value="Deseja realmente #{perfilController.vrPerfil.id ne null ? 'editar' : 'cadastrar'} o perfil "/>
+					<p:outputLabel styleClass="texto-negrito" value="#{perfilController.vrPerfil.nome}?"/>
+				</h:panelGroup>
+
+				<f:facet name="footer">
+					<f:facet name="footer">
+						<p:commandButton value="Cancelar" icon="fa fa-times-circle-o" ajax="false"
+										 title="Cancelar Ação"
+						                 onclick="PF('confirmarAcaoPerfil').hide(); return false;" />
+
+						<p:commandButton value="Confirmar" icon="fa fa-check-circle-o" update="form_1"
+										 title="Confirmar Ação"
+						                 action="#{perfilController.salvarPerfil}"
+						                 oncomplete="PF('confirmarAcaoPerfil').hide()" />
+					</f:facet>
+				</f:facet>
+			</p:dialog>
+
+			<!--Função para desabilitar a ação da tecla ENTER no formulário-->
+			<script>
+				$('form').off('keypress.disableAutoSubmitOnEnter').on('keypress.disableAutoSubmitOnEnter', function(event) {
+					if (event.which === $.ui.keyCode.ENTER &amp;&amp; $(event.target).is(':input:not(textarea,:button,:submit,:reset)')) {
+						event.preventDefault();
+					}
+				});
+			</script>
+		</h:form>
+	</ui:define>
+</ui:composition>

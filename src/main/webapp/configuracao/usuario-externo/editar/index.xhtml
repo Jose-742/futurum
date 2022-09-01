@@ -1,0 +1,148 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+				xmlns:h="http://xmlns.jcp.org/jsf/html"
+				xmlns:f="http://xmlns.jcp.org/jsf/core"
+				xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+				xmlns:p="http://primefaces.org/ui"
+				template="/templates/index.xhtml">
+
+	<f:metadata>
+		<f:viewParam name="idElemento" value="#{usuarioExternoController.idElemento}"/>
+		<f:viewAction action="#{usuarioExternoController.init}"/>
+	</f:metadata>
+
+	<ui:define name="breadcrumb">
+		<h:form id="bread">
+			<p:breadCrumb>
+				<p:menuitem value="Home" outcome="pretty:pagina-inicial"/>
+				<p:menuitem value="Gerenciar Usuário Externo" outcome="pretty:lista-usuario-externo"/>
+				<p:menuitem value="Adicionar Usuário Externo" url=""
+							rendered="#{usuarioExternoController.idElemento eq null}"/>
+				<p:menuitem value="Editar Usuário Externo" url=""
+							rendered="#{usuarioExternoController.idElemento ne null}"/>
+			</p:breadCrumb>
+		</h:form>
+	</ui:define>
+
+	<ui:define name="content">
+		<h:form id="form_1">
+			<div class="card">
+
+				<h1>Cadastro do Usuário Externo</h1>
+
+				<p:messages id="messages" closable="true">
+					<p:autoUpdate/>
+				</p:messages>
+
+				<p:fieldset id="fdsetDadosPessoais" legend="Dados do Usuário">
+					<h:panelGroup layout="block" styleClass="ui-lg-4 ui-fluid"
+								  rendered="#{usuarioExternoController.BShowDadosServidor eq false}">
+						<p:panelGrid layout="grid" columns="1">
+							<h:panelGroup styleClass="input-group-action">
+								<h:panelGroup styleClass="md-inputfield">
+									<p:inputMask id="cpfPesquisa" mask="999.999.999-99"
+												 value="#{usuarioExternoController.usuarioExterno.pessoa.cpf}"
+												 required="true"
+												 requiredMessage="Campo 'CPF' é de preenchimento obrigatório."/>
+									<p:outputLabel value="CPF" for="cpfPesquisa"/>
+								</h:panelGroup>
+
+								<p:commandButton title="Pesquisar novo usuário" update="form_1"
+												 actionListener="#{usuarioExternoController.consultarDadosServidor}"
+												 icon="ui-icon-search"/>
+							</h:panelGroup>
+						</p:panelGrid>
+					</h:panelGroup>
+
+					<!--DADOS DO SERVIDOR EXTERNO - CARTORIO-->
+					<h:panelGroup layout="block" styleClass="ui-lg-12 ui-fluid"
+								  rendered="#{usuarioExternoController.BShowDadosServidor}">
+						<p:panelGrid layout="grid" columns="1">
+							<h:panelGroup>
+								<p:outputLabel value="CPF:" styleClass="negrito"/>
+								<p:outputLabel value="#{usuarioExternoController.usuarioExterno.pessoa.cpf}">
+									<f:converter converterId="CPFConverter"/>
+								</p:outputLabel>
+							</h:panelGroup>
+						</p:panelGrid>
+
+						<br/>
+
+						<p:panelGrid layout="grid" columns="2">
+							<h:panelGroup styleClass="md-inputfield">
+								<p:inputText value="#{usuarioExternoController.usuarioExterno.pessoa.nome}"/>
+								<p:outputLabel value="Nome *"/>
+							</h:panelGroup>
+
+							<h:panelGroup styleClass="md-inputfield">
+								<p:inputText value="#{usuarioExternoController.usuarioExterno.pessoa.email}"/>
+								<p:outputLabel value="E-mail *"/>
+							</h:panelGroup>
+
+							<h:panelGroup styleClass="md-inputfield">
+								<p:password id="senha" value="#{usuarioExternoController.usuarioExterno.senha}"
+											required="true" requiredMessage="Campo 'Senha' obrigatório"
+											validatorMessage="Sua senha deve conter pelo menos oito caracteres"
+											title="Use pelo menos oito caracteres. Não use uma senha de outro site ou algo muito óbvio">
+									<f:validateLength minimum="8"/>
+								</p:password>
+								<p:outputLabel for="senha" value="Senha"/>
+							</h:panelGroup>
+						</p:panelGrid>
+					</h:panelGroup>
+
+					<h:panelGroup id="pnlLimparDados" layout="block" styleClass="action-button-group"
+								  rendered="#{usuarioExternoController.BShowDadosServidor and usuarioExternoController.BMostrarBotaoLimparDados}">
+						<p:commandButton value="Limpar" icon="fa fa-eraser" title="Limpar dados do usuário"
+										 update="form_1" action="#{usuarioExternoController.limpar}"/>
+					</h:panelGroup>
+				</p:fieldset>
+
+				<br/>
+
+				<h:panelGroup id="pnlSalvarUsuario" layout="block" styleClass="action-button-group"
+							  rendered="#{usuarioExternoController.BShowDadosServidor}">
+					<p:commandButton value="Cancelar" action="pretty:lista-usuario-externo" process="@this"
+									 icon="fa fa-times-circle-o"/>
+					<p:commandButton value="Salvar" icon="ui-icon-save" title="Salvar dados do usuário"
+									 update="confirmarAcaoUsuario"
+									 actionListener="#{usuarioExternoController.verificarCampoObrigatorio}"/>
+				</h:panelGroup>
+			</div>
+
+
+			<!-- Dialog de confirmacao do cadastro/edicao do usuario -->
+			<p:dialog id="confirmarAcaoUsuario" widgetVar="confirmarAcaoUsuario"
+					  header="Confirmação de #{usuarioExternoController.usuarioExterno.id ne null ? 'Edição' : 'Cadastro'}"
+					  modal="true" responsive="true" resizable="false" draggable="false"
+					  dynamic="true" closeOnEscape="true" styleClass="dialog-dinamico">
+
+				<h:panelGroup layout="block" styleClass="ui-fluid">
+					<p:outputLabel
+							value="Deseja realmente #{usuarioExternoController.usuarioExterno.id ne null ? 'editar' : 'cadastrar'} o usuário "/>
+					<p:outputLabel styleClass="texto-negrito"
+								   value="#{usuarioExternoController.usuarioExterno.pessoa.nome}?"/>
+				</h:panelGroup>
+
+				<f:facet name="footer">
+					<p:commandButton value="Cancelar" icon="fa fa-times-circle-o" ajax="false"
+									 title="Cancelar Ação"
+									 onclick="PF('confirmarAcaoUsuario').hide(); return false;"/>
+
+					<p:commandButton value="Confirmar" icon="fa fa-check-circle-o" update="form_1"
+									 title="Confirmar Ação"
+									 action="#{usuarioExternoController.salvar}"
+									 oncomplete="PF('confirmarAcaoUsuario').hide()"/>
+				</f:facet>
+			</p:dialog>
+
+			<!--Função para desabilitar a ação da tecla ENTER no formulário-->
+			<script>
+				$('form').off('keypress.disableAutoSubmitOnEnter').on('keypress.disableAutoSubmitOnEnter', function (event) {
+					if (event.which === $.ui.keyCode.ENTER &amp;&amp; $(event.target).is(':input:not(textarea,:button,:submit,:reset)')) {
+						event.preventDefault();
+					}
+				});
+			</script>
+		</h:form>
+	</ui:define>
+</ui:composition>

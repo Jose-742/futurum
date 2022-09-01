@@ -1,0 +1,170 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+				xmlns:h="http://xmlns.jcp.org/jsf/html"
+				xmlns:f="http://xmlns.jcp.org/jsf/core"
+				xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+				xmlns:p="http://primefaces.org/ui"
+				template="/templates/index.xhtml">
+
+	<f:metadata>
+		<f:viewParam name="idElemento" value="#{usuarioController.idElemento}"/>
+		<f:viewAction action="#{usuarioController.init}"/>
+	</f:metadata>
+
+	<ui:define name="breadcrumb">
+		<h:form id="bread">
+			<p:breadCrumb>
+				<p:menuitem value="Home" outcome="pretty:pagina-inicial"/>
+				<p:menuitem value="Gerenciar Usuário" outcome="pretty:lista-usuario"/>
+				<p:menuitem value="Adicionar Usuário" url="" rendered="#{usuarioController.idElemento eq null}"/>
+				<p:menuitem value="Editar Usuário" url="" rendered="#{usuarioController.idElemento ne null}"/>
+			</p:breadCrumb>
+		</h:form>
+	</ui:define>
+
+	<ui:define name="content">
+		<h:form id="form_1">
+			<div class="card">
+				<h1>Cadastro do Usuário</h1>
+				<p:messages id="messages" closable="true">
+					<p:autoUpdate/>
+				</p:messages>
+
+				<p:fieldset id="fdsetDadosPessoais" legend="Dados do Usuário">
+					<h:panelGroup layout="block" styleClass="ui-lg-4 ui-fluid"
+								  rendered="#{usuarioController.BShowDadosServidor eq false}">
+						<p:panelGrid layout="grid" columns="1">
+							<h:panelGroup styleClass="input-group-action">
+								<h:panelGroup styleClass="md-inputfield">
+									<p:inputMask id="cpfPesquisa" mask="999.999.999-99"
+												 value="#{usuarioController.vrUsuario.pessoa.cpf}"
+												 required="true"
+												 requiredMessage="Campo 'CPF' é de preenchimento obrigatório."/>
+									<p:outputLabel value="CPF" for="cpfPesquisa"/>
+								</h:panelGroup>
+								<p:commandButton title="Pesquisar novo usuário" update="form_1"
+												 actionListener="#{usuarioController.consultarDadosServidor}"
+												 icon="ui-icon-search"/>
+							</h:panelGroup>
+						</p:panelGrid>
+					</h:panelGroup>
+
+					<!--DADOS DO SERVIDOR DO ESTADO-->
+					<h:panelGroup layout="block" styleClass="ui-lg-12 ui-fluid"
+								  rendered="#{usuarioController.BShowDadosServidor}">
+						<p:panelGrid layout="grid" columns="3">
+							<h:panelGroup>
+								<p:outputLabel value="Nome:" styleClass="negrito"/>
+								<p:outputLabel value="#{usuarioController.vrUsuario.pessoa.nome}">
+									<f:converter converterId="nomeConverter"/>
+								</p:outputLabel>
+							</h:panelGroup>
+
+							<h:panelGroup>
+								<p:outputLabel value="CPF:" styleClass="negrito"/>
+								<p:outputLabel value="#{usuarioController.vrUsuario.pessoa.cpf}">
+									<f:converter converterId="CPFConverter"/>
+								</p:outputLabel>
+							</h:panelGroup>
+
+							<h:panelGroup>
+								<p:outputLabel value="Número Funcional:" styleClass="negrito"/>
+								<p:outputLabel value="#{usuarioController.vrUsuario.pessoa.matricula}"/>
+							</h:panelGroup>
+						</p:panelGrid>
+					</h:panelGroup>
+
+					<h:panelGroup id="pnlLimparDados" layout="block" styleClass="action-button-group"
+								  rendered="#{usuarioController.BShowDadosServidor and usuarioController.BMostrarBotaoLimparDados}">
+						<p:commandButton value="Limpar" icon="fa fa-eraser" title="Limpar dados do usuário"
+										 update="form_1" action="#{usuarioController.limpar}"/>
+					</h:panelGroup>
+				</p:fieldset>
+
+				<p:fieldset id="fdPerfis" legend="Perfil de Acesso" rendered="#{usuarioController.BShowDadosServidor}">
+					<h:panelGroup id="pnlPerfis" layout="block" styleClass="ui-g-12">
+						<p:dataTable id="dataTablePerfis"
+									 paginator="true" rows="7" widgetVar="w_model"
+									 paginatorAlwaysVisible="false" styleClass="reflowTable" rowIndexVar="rowIndex"
+									 emptyMessage="Nenhum registro encontrado." var="modelPerfil" reflow="true"
+									 value="#{usuarioController.vrListaPerfis}"
+									 selection="#{usuarioController.vrListaPerfisSelecionados}"
+									 tableStyle="table-layout:auto"
+									 rowKey="#{modelPerfil.id}"
+									 currentPageReportTemplate="{currentPage} de {totalPages}">
+
+							<p:ajax event="toggleSelect" update="form_1:pnlSalvarUsuario"
+									listener="#{usuarioController.selecaoPerfil}"/>
+							<p:ajax event="rowSelectCheckbox" update="form_1:pnlSalvarUsuario"
+									listener="#{usuarioController.selecaoPerfil}"/>
+							<p:ajax event="rowUnselectCheckbox" update="form_1:pnlSalvarUsuario"
+									listener="#{usuarioController.selecaoPerfil}"/>
+							<p:ajax event="rowSelect" update="form_1:pnlSalvarUsuario"
+									listener="#{usuarioController.selecaoPerfil}"/>
+							<p:ajax event="rowUnselect" update="form_1:pnlSalvarUsuario"
+									listener="#{usuarioController.selecaoPerfil}"/>
+
+							<f:facet name="header">
+								Lista de Perfis
+							</f:facet>
+
+							<p:column selectionMode="multiple" width="50" styleClass="centralizar"/>
+
+							<p:column sortBy="nome" headerText="Perfil">
+								<p:outputLabel value="#{modelPerfil.nome}">
+									<f:converter converterId="nomeConverter"/>
+								</p:outputLabel>
+							</p:column>
+
+						</p:dataTable>
+					</h:panelGroup>
+				</p:fieldset>
+
+				<br/>
+
+				<h:panelGroup id="pnlSalvarUsuario" layout="block" styleClass="action-button-group"
+							  rendered="#{usuarioController.BShowDadosServidor}">
+					<p:commandButton value="Cancelar" action="pretty:lista-usuario" process="@this"
+									 icon="fa fa-times-circle-o"/>
+					<p:commandButton value="Salvar" icon="ui-icon-save" title="Salvar dados do usuário"
+									 update="confirmarAcaoUsuario"
+									 actionListener="#{usuarioController.verificarCampoObrigatorio}"
+									 disabled="#{usuarioController.BAtivarBtnSalvar eq false}"/>
+				</h:panelGroup>
+			</div>
+
+
+			<!-- Dialog de confirmacao do cadastro/edicao do usuario -->
+			<p:dialog id="confirmarAcaoUsuario" widgetVar="confirmarAcaoUsuario"
+					  header="Confirmação de #{usuarioController.vrUsuario.id ne null ? 'Edição' : 'Cadastro'}"
+					  modal="true" responsive="true" resizable="false" draggable="false"
+					  dynamic="true" closeOnEscape="true" styleClass="dialog-dinamico">
+
+				<h:panelGroup layout="block" styleClass="ui-fluid">
+					<p:outputLabel
+							value="Deseja realmente #{usuarioController.vrUsuario.id ne null ? 'editar' : 'cadastrar'} o usuário "/>
+					<p:outputLabel styleClass="texto-negrito" value="#{usuarioController.vrUsuario.pessoa.nome}?"/>
+				</h:panelGroup>
+
+				<f:facet name="footer">
+					<p:commandButton value="Cancelar" icon="fa fa-times-circle-o" ajax="false"
+									 title="Cancelar Ação"
+									 onclick="PF('confirmarAcaoUsuario').hide(); return false;"/>
+
+					<p:commandButton value="Confirmar" icon="fa fa-check-circle-o" update="form_1"
+									 title="Confirmar Ação"
+									 action="#{usuarioController.salvar}"
+									 oncomplete="PF('confirmarAcaoUsuario').hide()"/>
+				</f:facet>
+			</p:dialog>
+
+			<!--Função para desabilitar a ação da tecla ENTER no formulário-->
+			<script>
+				$('form').off('keypress.disableAutoSubmitOnEnter').on('keypress.disableAutoSubmitOnEnter', function (event) {
+					if (event.which === $.ui.keyCode.ENTER &amp;&amp; $(event.target).is(':input:not(textarea,:button,:submit,:reset)')) {
+						event.preventDefault();
+					}
+				});
+			</script>
+		</h:form>
+	</ui:define>
+</ui:composition>

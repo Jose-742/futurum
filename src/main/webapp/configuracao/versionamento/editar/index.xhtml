@@ -1,0 +1,121 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://xmlns.jcp.org/jsf/html"
+                xmlns:f="http://xmlns.jcp.org/jsf/core"
+                xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+                xmlns:p="http://primefaces.org/ui"
+                template="/templates/index.xhtml">
+
+	<f:metadata>
+		<f:viewParam name="idElemento" value="#{versionamentoController.idElemento}"/>
+		<f:viewAction action="#{versionamentoController.init}"/>
+	</f:metadata>
+
+	<ui:define name="breadcrumb">
+		<h:form id="bread">
+			<p:breadCrumb>
+				<p:menuitem value="Home" outcome="pretty:pagina-inicial"/>
+				<p:menuitem value="Gerenciar Versionamento" outcome="pretty:lista-versionamento"/>
+				<p:menuitem value="Adicionar Versionamento" url=""
+				            rendered="#{versionamentoController.idElemento eq null}"/>
+				<p:menuitem value="Editar Versionamento" url=""
+				            rendered="#{versionamentoController.idElemento ne null}"/>
+			</p:breadCrumb>
+		</h:form>
+	</ui:define>
+
+	<ui:define name="content">
+		<h:form id="form_1">
+			<div class="card">
+				<h1>Cadastro de Versionamento</h1>
+				<p:messages id="messages" closable="true">
+					<p:autoUpdate/>
+				</p:messages>
+
+				<p:fieldset legend="Dados do Versionamento">
+					<h:panelGroup layout="block" styleClass="ui-g-12 ui-fluid">
+						<h:panelGroup styleClass="ui-g-12 ui-md-12 ui-lg-12" layout="block">
+							<p:panelGrid layout="grid" columns="2">
+								<h:panelGroup>
+									<p:outputLabel value="Data: *" styleClass="negrito"/>
+									<p:outputLabel value="#{versionamentoController.vrDataAtual}"
+									               converter="#{localDateTimeConverter}"/>
+								</h:panelGroup>
+
+								<h:panelGroup>
+									<p:outputLabel value="Departamento: *" styleClass="negrito"/>
+									<p:selectOneMenu
+											value="#{versionamentoController.vrVersionamento.tipoVersao}"
+											filter="true" filterMatchMode="contains">
+										<f:selectItem itemLabel="Selecione" itemValue=""/>
+										<f:selectItems value="#{versionamentoController.tipoVersionamentos}"
+										               itemLabel="#{tipoVersao.label}"
+										               itemValue="#{tipoVersao.label}" var="tipoVersao"/>
+
+										<p:ajax listener="#{versionamentoController.ativarBotaoSalvar}"
+										        update="pnlSalvar"/>
+									</p:selectOneMenu>
+								</h:panelGroup>
+							</p:panelGrid><br/><br/><br/>
+
+							<p:panelGrid layout="grid" columns="1">
+								<h:panelGroup>
+									<p:outputLabel value="OBS.:" styleClass="negrito"/>
+									<p:outputLabel
+											value="VERSÃO: Acrescenta-se um número a VERSÃO se o projeto for uma evolução."/><br/>
+									<p:outputLabel
+											value="RELEASE: Acrescenta-se um número a RELEASE se o projeto for uma melhoria (ex: exclusão ou inclusão de novas funcionalidades)."/><br/>
+									<p:outputLabel
+											value="REVISÃO: Acrescenta-se um número a REVISÃO se o projeto for uma correção de funcionalidades já existentes."/>
+								</h:panelGroup>
+							</p:panelGrid>
+						</h:panelGroup>
+					</h:panelGroup>
+
+					<h:panelGroup id="pnlSalvar" layout="block" styleClass="ui-g-12 action-button-group">
+						<p:commandButton value="Cancelar" action="pretty:lista-versionamento" process="@this"
+						                 icon="fa fa-times-circle-o"/>
+						<p:commandButton id="btnSalvar" value="Salvar" icon="ui-icon-save" update="confirmarAcaoSalvar"
+						                 disabled="#{versionamentoController.bAtivarBotaoSalvar eq false}"
+						                 title="Salvar o versionamento" oncomplete="PF('confirmarAcaoPerfil').show()"/>
+					</h:panelGroup>
+				</p:fieldset>
+			</div>
+
+			<!-- Dialog de confirmacao do cadastro/edicao do menu -->
+			<p:dialog id="confirmarAcaoSalvar" widgetVar="confirmarAcaoSalvar"
+			          header="Confirmação de #{versionamentoController.vrVersionamento.id ne null ? 'Edição' : 'Cadastro'}"
+			          modal="true" responsive="true" resizable="false" draggable="false"
+			          dynamic="true" closeOnEscape="true" styleClass="dialog-dinamico">
+
+				<h:panelGroup layout="block" styleClass="ui-fluid">
+					<p:outputLabel
+							value="Deseja realmente #{versionamentoController.vrVersionamento.id ne null ? 'editar' : 'cadastrar'} o versionamento "/>
+					<p:outputLabel styleClass="texto-negrito"
+					               value="#{versionamentoController.vrVersionamento.versao}?"/>
+				</h:panelGroup>
+
+				<f:facet name="footer">
+					<f:facet name="footer">
+						<p:commandButton value="Cancelar" icon="fa fa-times-circle-o" ajax="false"
+										 title="Cancelar Ação"
+						                 onclick="PF('confirmarAcaoSalvar').hide(); return false;" />
+
+						<p:commandButton value="Confirmar" icon="fa fa-check-circle-o" update="form_1"
+										 title="Confirmar Ação"
+						                 action="#{versionamentoController.salvarVersionamento}"
+						                 oncomplete="PF('confirmarAcaoSalvar').hide()"/>
+					</f:facet>
+				</f:facet>
+			</p:dialog>
+
+			<!--Função para desabilitar a ação da tecla ENTER no formulário-->
+			<script>
+				$('form').off('keypress.disableAutoSubmitOnEnter').on('keypress.disableAutoSubmitOnEnter', function (event) {
+					if (event.which === $.ui.keyCode.ENTER &amp;&amp; $(event.target).is(':input:not(textarea,:button,:submit,:reset)')) {
+						event.preventDefault();
+					}
+				});
+			</script>
+		</h:form>
+	</ui:define>
+</ui:composition>

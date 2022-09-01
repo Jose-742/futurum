@@ -1,0 +1,304 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://xmlns.jcp.org/jsf/html"
+                xmlns:f="http://xmlns.jcp.org/jsf/core"
+                xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+                xmlns:p="http://primefaces.org/ui"
+                template="/templates/index.xhtml">
+
+	<f:metadata>
+		<f:viewParam name="idElemento" value="#{menuController.idElemento}"/>
+		<f:viewAction action="#{menuController.init}"/>
+	</f:metadata>
+
+	<ui:define name="breadcrumb">
+		<h:form>
+			<p:breadCrumb>
+				<p:menuitem value="Home" outcome="pretty:pagina-inicial"/>
+				<p:menuitem value="Gerenciar Menu" outcome="pretty:config-menu"/>
+				<p:menuitem value="Adicionar Menu" url="" rendered="#{menuController.idElemento eq null}"/>
+				<p:menuitem value="Editar Menu" url="" rendered="#{menuController.idElemento ne null}"/>
+			</p:breadCrumb>
+		</h:form>
+	</ui:define>
+
+	<ui:define name="content">
+		<h:form id="form_1">
+			<div class="card">
+				<h1>Cadastro do Menu</h1>
+				<p:messages id="messages" closable="true">
+					<p:autoUpdate/>
+				</p:messages>
+
+				<p:fieldset id="fdPrimeiroNivel" legend="Dados do Menu">
+					<h:panelGroup layout="block" styleClass="ui-fluid">
+						<p:panelGrid layout="grid" columns="2">
+							<h:panelGroup styleClass="md-inputfield">
+								<p:inputText id="descricao" value="#{menuController.vrMenu.descricao}"/>
+								<p:outputLabel value="Descrição" for="descricao"/>
+							</h:panelGroup>
+
+							<h:panelGroup styleClass="md-inputfield">
+								<p:inputText id="url" value="#{menuController.vrMenu.url}"/>
+								<p:outputLabel value="URL" for="url"/>
+							</h:panelGroup>
+
+							<h:panelGroup styleClass="md-inputfield">
+								<p:spinner id="nivel" min="1" max="3" value="#{menuController.vrMenu.nivel}"
+								           onkeyup="onlyNumbers(this)">
+									<p:ajax listener="#{menuController.buscarListaMenuPai()}"
+									        update="menuPai opcaoSegundoNivel pnlSegundoNivel pnlTericeroNivel"
+									        process="@this"/>
+								</p:spinner>
+								<p:outputLabel value="Nível" for="nivel"/>
+							</h:panelGroup>
+
+							<h:panelGroup styleClass="md-inputfield">
+								<p:spinner id="ordem" min="1" max="50" size="5" value="#{menuController.vrMenu.ordem}"
+								           onkeyup="onlyNumbers(this)"/>
+								<p:outputLabel value="Ordem" for="ordem"/>
+							</h:panelGroup>
+
+							<h:panelGroup styleClass="md-inputfield">
+								<p:inputText id="icone" value="#{menuController.vrMenu.icone}"/>
+								<p:outputLabel value="Ícone" for="icone"/>
+							</h:panelGroup>
+
+							<p:panelGrid layout="grid" columns="2">
+								<h:panelGroup>
+									<p:outputLabel value="Ativo: " styleClass="texto-negrito"/>
+									<p:selectBooleanCheckbox value="#{menuController.vrMenu.ativo}"/>
+								</h:panelGroup>
+
+								<h:panelGroup id="opcaoSegundoNivel">
+									<p:outputLabel value="Possui 2º Nível: " styleClass="texto-negrito"
+									               rendered="#{(menuController.vrMenu.nivel eq 1 or menuController.vrMenu.nivel eq null) and menuController.vrMenu.nivel ne 3}"/>
+									<p:outputLabel value="Possui 3º Nível: " styleClass="texto-negrito"
+									               rendered="#{menuController.vrMenu.nivel eq 2 and menuController.vrMenu.nivel ne 3}"/>
+
+									<p:selectBooleanCheckbox id="selectoBooleanSegundoNivel"
+									                         rendered="#{menuController.vrMenu.nivel ne 2 and menuController.vrMenu.nivel ne 3}"
+									                         value="#{menuController.bRenderizaSegundoNivel}">
+										<p:ajax update="fdPrimeiroNivel pnlSegundoNivel" process="fdPrimeiroNivel"
+										        listener="#{menuController.verificarCampoObrigatorio}"/>
+									</p:selectBooleanCheckbox>
+
+									<p:selectBooleanCheckbox id="selectoBooleanTerceiroNivelDireto"
+									                         rendered="#{menuController.vrMenu.nivel eq 2 and menuController.vrMenu.nivel ne 3}"
+									                         value="#{menuController.bRenderizaTerceiroNivel}">
+										<p:ajax update="fdPrimeiroNivel pnlTericeroNivel" process="fdPrimeiroNivel"
+										        listener="#{menuController.verificarCampoObrigatorio}"/>
+									</p:selectBooleanCheckbox>
+								</h:panelGroup>
+							</p:panelGrid>
+
+							<h:panelGroup id="menuPai">
+								<p:outputLabel value="Menu Pai: *" rendered="#{menuController.bRenderizaSelectMenuPai}"
+								               styleClass="texto-negrito"/>
+								<p:selectOneMenu value="#{menuController.vrMenu.pai}" converter="#{menuConverter}"
+								                 rendered="#{menuController.bRenderizaSelectMenuPai}">
+									<f:selectItem itemLabel="Selecione" itemValue=""/>
+									<f:selectItems value="#{menuController.listaMenus}" var="menu"
+									               itemLabel="#{menu.descricao}"
+									               itemValue="#{menu}"/>
+								</p:selectOneMenu>
+							</h:panelGroup>
+						</p:panelGrid>
+					</h:panelGroup>
+				</p:fieldset><br/>
+
+				<h:panelGroup id="pnlSegundoNivel" layout="block" styleClass="ui-fluid">
+					<p:fieldset id="fdSegundoNivel" legend="Dados do Menu de 2º Nível"
+					            rendered="#{menuController.bRenderizaSegundoNivel}">
+						<p:panelGrid layout="grid" columns="2">
+							<h:panelGroup styleClass="md-inputfield">
+								<p:inputText id="descricao2" value="#{menuController.vrMenuSegundoNivel.descricao}"/>
+								<p:outputLabel value="Descrição" for="descricao2"/>
+							</h:panelGroup>
+
+							<h:panelGroup styleClass="md-inputfield">
+								<p:inputText id="url2" value="#{menuController.vrMenuSegundoNivel.url}"/>
+								<p:outputLabel value="URL" for="url2"/>
+							</h:panelGroup>
+
+							<h:panelGroup styleClass="md-inputfield">
+								<p:spinner id="nivel2" min="1" max="3"
+								           value="#{menuController.vrMenuSegundoNivel.nivel}"
+								           disabled="true"
+								           onkeyup="onlyNumbers(this)">
+									<p:ajax listener="#{menuController.buscarListaMenuPai()}" update="menuPai"
+									        process="@this"/>
+								</p:spinner>
+								<p:outputLabel value="Nível" for="nivel2"/>
+							</h:panelGroup>
+
+							<h:panelGroup styleClass="md-inputfield">
+								<p:spinner id="ordem2" min="1" max="50" size="5"
+								           value="#{menuController.vrMenuSegundoNivel.ordem}"
+								           onkeyup="onlyNumbers(this)"/>
+								<p:outputLabel value="Ordem" for="ordem2"/>
+							</h:panelGroup>
+
+							<h:panelGroup styleClass="md-inputfield">
+								<p:inputText id="icone2" value="#{menuController.vrMenuSegundoNivel.icone}"/>
+								<p:outputLabel value="Ícone" for="icone2"/>
+							</h:panelGroup>
+
+							<p:panelGrid layout="grid" columns="2">
+								<h:panelGroup>
+									<p:outputLabel value="Ativo: " styleClass="texto-negrito"/>
+									<p:selectBooleanCheckbox value="#{menuController.vrMenuSegundoNivel.ativo}"/>
+								</h:panelGroup>
+
+								<h:panelGroup id="opcaoTerceiroNivel">
+									<p:outputLabel value="Possui 3º Nível: " styleClass="texto-negrito"/>
+									<p:selectBooleanCheckbox id="selectoBooleanTerceiroNivel"
+									                         value="#{menuController.bRenderizaTerceiroNivel}">
+										<p:ajax update="fdSegundoNivel pnlTericeroNivel" process="fdSegundoNivel"
+										        listener="#{menuController.verificarCampoObrigatorioSegundoNivel}"/>
+									</p:selectBooleanCheckbox>
+								</h:panelGroup>
+							</p:panelGrid>
+
+							<h:panelGroup id="menuPai2">
+								<p:outputLabel value="Menu Pai: " styleClass="texto-negrito"/>
+								<p:outputLabel value="#{menuController.vrMenu.descricao}"/>
+							</h:panelGroup>
+						</p:panelGrid>
+					</p:fieldset>
+				</h:panelGroup><br/>
+
+				<h:panelGroup id="pnlTericeroNivel" layout="block" styleClass="ui-fluid">
+					<p:fieldset id="fdTerceiroNivel" legend="Dados do Menu de 3º Nível"
+					            rendered="#{menuController.bRenderizaTerceiroNivel}">
+						<p:panelGrid layout="grid" columns="2">
+							<h:panelGroup styleClass="md-inputfield">
+								<p:inputText id="descricao3" value="#{menuController.vrMenuTerceiroNivel.descricao}"/>
+								<p:outputLabel value="Descrição" for="descricao2"/>
+							</h:panelGroup>
+
+							<h:panelGroup styleClass="md-inputfield">
+								<p:inputText id="url3" value="#{menuController.vrMenuTerceiroNivel.url}"/>
+								<p:outputLabel value="URL" for="url2"/>
+							</h:panelGroup>
+
+							<h:panelGroup styleClass="md-inputfield">
+								<p:spinner id="nivel3" min="1" max="3"
+								           value="#{menuController.vrMenuTerceiroNivel.nivel}"
+								           disabled="true"
+								           onkeyup="onlyNumbers(this)">
+									<p:ajax listener="#{menuController.buscarListaMenuPai()}" update="menuPai"
+									        process="@this"/>
+								</p:spinner>
+								<p:outputLabel value="Nível" for="nivel2"/>
+							</h:panelGroup>
+
+							<h:panelGroup styleClass="md-inputfield">
+								<p:spinner id="ordem3" min="1" max="50" size="5"
+								           value="#{menuController.vrMenuTerceiroNivel.ordem}"
+								           onkeyup="onlyNumbers(this)"/>
+								<p:outputLabel value="Ordem" for="ordem2"/>
+							</h:panelGroup>
+
+							<h:panelGroup styleClass="md-inputfield">
+								<p:inputText id="icone3" value="#{menuController.vrMenuTerceiroNivel.icone}"/>
+								<p:outputLabel value="Ícone" for="icone2"/>
+							</h:panelGroup>
+
+							<p:panelGrid layout="grid" columns="2">
+								<h:panelGroup>
+									<p:outputLabel value="Ativo: " styleClass="texto-negrito"/>
+									<p:selectBooleanCheckbox value="#{menuController.vrMenuTerceiroNivel.ativo}"/>
+								</h:panelGroup>
+							</p:panelGrid>
+
+							<h:panelGroup rendered="#{menuController.vrMenuSegundoNivel ne null}">
+								<p:outputLabel value="Menu Pai: " styleClass="texto-negrito"/>
+								<p:outputLabel value="#{menuController.vrMenuSegundoNivel.descricao}"/>
+							</h:panelGroup>
+
+							<h:panelGroup
+									rendered="#{menuController.vrMenuSegundoNivel eq null}">
+								<p:outputLabel value="Menu Pai: " styleClass="texto-negrito"/>
+								<p:outputLabel value="#{menuController.vrMenu.descricao}"/>
+							</h:panelGroup>
+						</p:panelGrid>
+					</p:fieldset>
+				</h:panelGroup><br/>
+
+				<p:dataTable id="dataTablePerfis" paginator="true" rows="15" widgetVar="w_model"
+				             paginatorAlwaysVisible="false" styleClass="reflowTable" rowIndexVar="rowIndex"
+				             emptyMessage="Nenhum registro encontrado." var="model" reflow="true"
+				             value="#{menuController.vrListaPerfil}"
+				             selection="#{menuController.vrListaPerfilSelecionados}"
+				             tableStyle="table-layout:auto" rowKey="#{model.id}"
+				             currentPageReportTemplate="{currentPage} de {totalPages}">
+
+					<f:facet name="header">
+						Lista de Perfis
+					</f:facet>
+
+					<p:column headerText="#" width="50" styleClass="centralizar">
+						#{rowIndex+1}
+					</p:column>
+
+					<p:column selectionMode="multiple" width="50" styleClass="centralizar"/>
+
+					<p:column headerText="Descrição">
+						<p:outputLabel value="#{model.nome}"/>
+					</p:column>
+				</p:dataTable>
+
+				<br/>
+
+				<h:panelGroup layout="block" styleClass="action-button-group">
+					<p:commandButton value="Salvar" icon="ui-icon-save" title="Salvar dados do menu"
+					                 action="#{menuController.salvarMenu}"/>
+				</h:panelGroup>
+			</div>
+
+			<!-- Dialog de confirmacao do cadastro/edicao do menu -->
+			<p:dialog id="confirmarAcaoMenu" widgetVar="confirmarAcaoMenu" header="Confirmar Ação"
+			          modal="true" responsive="true" resizable="false" draggable="false"
+			          dynamic="true" closeOnEscape="true" styleClass="dialog-dinamico">
+
+				<h:panelGroup layout="block" styleClass="ui-fluid">
+					<p:outputLabel rendered="#{menuController.vrMenu.id eq null}"
+					               value="Tem certeza que deseja cadastrar o menu "/>
+					<p:outputLabel styleClass="texto-negrito" rendered="#{menuController.vrMenu.id eq null}"
+					               value="#{menuController.vrMenu.descricao}?"/>
+
+					<p:outputLabel rendered="#{menuController.vrMenu.id ne null}"
+					               value="Tem certeza que deseja alterar o menu "/>
+					<p:outputLabel styleClass="texto-negrito" rendered="#{menuController.vrMenu.id ne null}"
+					               value="#{menuController.vrMenu.descricao}?"/>
+				</h:panelGroup>
+
+				<f:facet name="footer">
+					<p:commandButton value="Cancelar" icon="fa fa-times-circle-o" ajax="false"
+									 title="Cancelar Ação"
+					                 onclick="PF('confirmarAcaoMenu').hide(); return false;" />
+
+					<p:commandButton value="Confirmar" icon="fa fa-check-circle-o" update="form_1"
+					                 action="#{menuController.salvarMenu}" title="Confirmar Ação"
+					                 oncomplete="PF('confirmarAcaoMenu').hide()" />
+				</f:facet>
+			</p:dialog>
+
+			<!--Função para o campo spinner com entrada de apenas números-->
+			<script type="text/javascript">
+				function onlyNumbers(data) {
+					data.value = data.value.replace(/[^0-9]/g, '');
+				};
+			</script>
+
+			<!--Função para desabilitar a ação da tecla ENTER no formulário-->
+			<script>
+				$('form').off('keypress.disableAutoSubmitOnEnter').on('keypress.disableAutoSubmitOnEnter', function (event) {
+					if (event.which === $.ui.keyCode.ENTER &amp;&amp; $(event.target).is(':input:not(textarea,:button,:submit,:reset)')) {
+						event.preventDefault();
+					}
+				});
+			</script>
+		</h:form>
+	</ui:define>
+</ui:composition>

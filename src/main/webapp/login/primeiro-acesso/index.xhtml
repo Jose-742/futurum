@@ -1,0 +1,164 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+				xmlns:h="http://xmlns.jcp.org/jsf/html"
+				xmlns:f="http://xmlns.jcp.org/jsf/core"
+				xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+				xmlns:p="http://primefaces.org/ui"
+				template="/templates/empty.xhtml">
+
+	<f:metadata>
+		<f:viewAction action="#{primeiroAcessoUsuarioExternoController.init}"/>
+	</f:metadata>
+
+	<ui:define name="content">
+		<h:body styleClass="acesso-body">
+
+			<h:form id="form_1" prependId="false">
+				<div class="grid-wrapper smaller">
+					<div class="grid-left">
+						<div class="left-content">
+							<p:link href="/login" style="width: 100%; text-align: center">
+								<p:graphicImage styleClass="logo" name="refis_login.svg" library="img"/>
+							</p:link>
+
+							<p:outputLabel styleClass="title">Refis</p:outputLabel>
+						</div>
+					</div>
+
+					<div class="grid-right">
+						<p:panelGrid id="bread">
+							<p:messages id="messages" closable="true" style="line-height: 16px;">
+								<p:autoUpdate/>
+							</p:messages>
+						</p:panelGrid>
+
+						<div class="ui-fluid">
+							<h:panelGroup styleClass="acesso-title-group">
+								<div style="float: left">
+									<p:commandButton styleClass="flat-button" icon="fa fa-arrow-left"
+													 immediate="true" action="pretty:login"/>
+								</div>
+
+								<div style="text-align: center">
+									<span class="acesso-title" style="margin-right: 8%">CADASTRE-SE</span>
+								</div>
+							</h:panelGroup>
+
+							<!--Pessoa Fisica-->
+							<p:panelGrid layout="grid" columns="2">
+								<h:panelGroup styleClass="input-group-action">
+									<h:panelGroup styleClass="md-inputfield">
+										<p:inputMask id="cpfPesquisa" mask="999.999.999-99"
+													 value="#{primeiroAcessoUsuarioExternoController.usuarioExterno.pessoa.cpf}"
+													 required="true"
+													 requiredMessage="Campo 'CPF' é de preenchimento obrigatório."/>
+
+										<p:outputLabel value="CPF" for="cpfPesquisa"/>
+									</h:panelGroup>
+								</h:panelGroup>
+							</p:panelGrid>
+
+							<p:panelGrid layout="grid" columns="2">
+								<h:panelGroup styleClass="md-inputfield">
+									<p:inputText id="nome" required="true"
+												 requiredMessage="Campo 'NOME' é de preenchimento obrigatório."
+												 value="#{primeiroAcessoUsuarioExternoController.usuarioExterno.pessoa.nome}"/>
+
+									<p:outputLabel for="nome" value="Nome *"/>
+								</h:panelGroup>
+
+								<h:panelGroup styleClass="md-inputfield">
+									<p:inputText id="email" required="true"
+												 requiredMessage="Campo 'E-MAIL' é de preenchimento obrigatório."
+												 value="#{primeiroAcessoUsuarioExternoController.usuarioExterno.pessoa.email}"
+												 autocomplete="off"/>
+
+									<p:outputLabel for="email" value="E-mail *"/>
+								</h:panelGroup>
+							</p:panelGrid>
+
+							<p:panelGrid layout="grid" columns="2">
+								<h:panelGroup>
+									<p:outputLabel value="Senha: *"/>
+
+									<h:panelGroup styleClass="input-group-action">
+										<p:password id="password" type="password" autocomplete="off"
+													value="#{primeiroAcessoUsuarioExternoController.usuarioExterno.senha}"
+													required="true" requiredMessage="Campo 'SENHA' obrigatório"
+													title="Use pelo menos oito caracteres. Não use uma senha de outro site ou algo muito óbvio"/>
+									</h:panelGroup>
+
+								</h:panelGroup>
+
+								<h:panelGroup>
+									<p:outputLabel value="Confirma Senha: *"/>
+
+									<h:panelGroup styleClass="input-group-action">
+										<p:password id="password1" type="password" autocomplete="off"
+													value="#{primeiroAcessoUsuarioExternoController.confirmarSenha}"
+													required="true"
+													requiredMessage="Campo 'CONFIRMA SENHA' obrigatório"
+													title="Use pelo menos oito caracteres. Não use uma senha de outro site ou algo muito óbvio"/>
+									</h:panelGroup>
+
+								</h:panelGroup>
+							</p:panelGrid>
+
+							<p:panelGrid layout="grid" columns="1">
+								<!--Documento de Identificação-->
+								<p:fieldset legend="Anexar Documento de Identificação com Foto *"
+											style="text-align: center; padding: 0px 16px;">
+									<p:fileUpload
+											fileUploadListener="#{primeiroAcessoUsuarioExternoController.handleFileUploadDocumentacao}"
+											mode="advanced"
+											skinSimple="true" dragDropSupport="false" multiple="false"
+											sizeLimit="1000000000000000" allowTypes="/(\.|\/)(pdf)$/"
+											update="lbl_documentacao @this" cancelLabel="Cancelar"
+											uploadLabel="Importar"
+											label="#{'Selecionar Arquivo'}"
+											invalidFileMessage="É permitido apenas arquivo no formato PDF. Arquivo: "
+											invalidSizeMessage="Limite do tamanho do arquivo é de 10mb." auto="true"/>
+
+									<h:panelGroup id="lbl_documentacao">
+										<p:outputLabel
+												value="#{primeiroAcessoUsuarioExternoController.fileDocumentacao.fileName}"
+												style="float: left; padding-top: 10px; font-weight: bold"/>
+
+										<p:commandButton ajax="false" icon="ui-icon-file-download"
+														 title="Download do anexo" immediate="true"
+														 actionListener="#{primeiroAcessoUsuarioExternoController.preparaArquivoDownload}"
+														 rendered="#{primeiroAcessoUsuarioExternoController.anexoUsuarioExterno.id eq null and primeiroAcessoUsuarioExternoController.fileDocumentacao ne null}"
+														 style="float: right; margin-top: 5px">
+											<p:fileDownload
+													value="#{primeiroAcessoUsuarioExternoController.fileDownload}"/>
+										</p:commandButton>
+									</h:panelGroup>
+								</p:fieldset>
+							</p:panelGrid>
+						</div>
+
+						<br/>
+
+						<h:panelGroup id="pnlSalvar" layout="block" styleClass="ui-g-12 action-button-group">
+							<p:commandButton icon="fa fa-arrow-left" value="Voltar" process="@this"
+											 style="align-self: end; justify-self: end" action="pretty:login"/>
+
+							<p:commandButton icon="fa fa-check" value="Confirmar" update="form_1"
+											 action="#{primeiroAcessoUsuarioExternoController.salvar}"
+											 style="align-self: end; justify-self: end"/>
+						</h:panelGroup>
+					</div>
+				</div>
+			</h:form>
+
+			<!--Função para desabilitar a ação da tecla ENTER no formulário-->
+			<script>
+				$('form').off('keypress.disableAutoSubmitOnEnter').on('keypress.disableAutoSubmitOnEnter', function (event) {
+					if (event.which === $.ui.keyCode.ENTER &amp;&amp; $(event.target).is(':input:not(textarea,:button,:submit,:reset)')) {
+						event.preventDefault();
+					}
+				});
+			</script>
+
+		</h:body>
+	</ui:define>
+</ui:composition>

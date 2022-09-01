@@ -1,0 +1,66 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+				xmlns:h="http://xmlns.jcp.org/jsf/html"
+				xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+				xmlns:p="http://primefaces.org/ui"
+				template="/templates/empty.xhtml">
+
+	<ui:define name="content">
+		<h:body styleClass="acesso-body">
+
+			<p:growl id="messages" life="7000" sticky="false">
+				<p:autoUpdate/>
+			</p:growl>
+
+			<h:form id="form_1" prependId="false">
+				<div class="grid-wrapper smaller">
+					<div class="grid-left">
+						<div class="left-content">
+							<p:link href="/login" style="width: 100%; text-align: center">
+								<p:graphicImage styleClass="logo" name="refis_login.svg" library="img"/>
+							</p:link>
+
+							<p:outputLabel styleClass="title">Refis</p:outputLabel>
+						</div>
+					</div>
+
+					<div class="grid-right">
+						<div class="ui-fluid">
+							<h:panelGroup styleClass="acesso-title-group">
+								<div style="float: left">
+									<p:commandButton styleClass="flat-button" icon="fa fa-arrow-left"
+													 immediate="true" action="pretty:login"/>
+								</div>
+
+								<div style="text-align: center">
+									<span class="acesso-title" style="margin-right: 8%">RECUPERAR SENHA</span>
+								</div>
+							</h:panelGroup>
+
+							<p:panelGrid layout="grid" columns="1">
+								<h:panelGroup styleClass="md-inputfield">
+									<p:inputText id="cpf" type="cpf"
+												 value="#{recuperarSenhaController.usuarioExterno.pessoa.cpf}"
+												 required="true" requiredMessage="Campo 'CPF' obrigatório."/>
+
+									<p:outputLabel for="cpf" value="Informe o seu CPF *"/>
+								</h:panelGroup>
+
+								<p:outputLabel
+										value="Obs.: Esta funcionalidade é permitida somente para o contribuinte."
+										style="color: red; font-style: italic;"/>
+							</p:panelGrid>
+						</div>
+
+						<br/>
+
+						<div class="grid-right-buttons">
+							<p:commandButton icon="fa fa-check" value="Confirmar"
+											 update="form_1" actionListener="#{recuperarSenhaController.esqueciSenha}"
+											 style="align-self: end; justify-self: end"/>
+						</div>
+					</div>
+				</div>
+			</h:form>
+		</h:body>
+	</ui:define>
+</ui:composition>

@@ -1,0 +1,164 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+				xmlns:h="http://xmlns.jcp.org/jsf/html"
+				xmlns:f="http://xmlns.jcp.org/jsf/core"
+				xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+				xmlns:p="http://primefaces.org/ui"
+				template="/templates/index.xhtml">
+
+	<f:metadata>
+		<f:viewAction action="#{usuarioController.preRenderListar}"/>
+	</f:metadata>
+
+	<ui:define name="breadcrumb">
+		<h:form>
+			<p:breadCrumb>
+				<p:menuitem value="Home" outcome="pretty:pagina-inicial"/>
+				<p:menuitem value="Gerenciar Usuário" url=""/>
+			</p:breadCrumb>
+		</h:form>
+	</ui:define>
+
+	<ui:define name="content">
+		<h:form id="form_1">
+			<div class="card">
+				<h1>Lista de Usuários</h1>
+				<p:messages id="messages" closable="true">
+					<p:autoUpdate/>
+				</p:messages>
+
+				<div class="ui-g">
+					<h:panelGroup layout="block" styleClass="ui-g-12 action-button-group-left">
+						<p:commandButton id="btn_novo" update="dataTableUsuario" value="Adicionar"
+										 title="Adicionar novo usuário"
+										 action="pretty:novo-usuario" icon="ui-icon-add"/>
+					</h:panelGroup>
+
+					<br/>
+
+					<h:panelGroup layout="block" styleClass="ui-g-12">
+						<p:dataTable id="dataTableUsuario" widgetVar="modelUsuario"
+									 value="#{usuarioController.vrLazyListaUsuario}" var="model" rows="10"
+									 paginator="true" paginatorAlwaysVisible="false" rowIndexVar="rowIndex"
+									 reflow="true" rowKey="#{model.id}" lazy="true"
+									 emptyMessage="Nenhum registro encontrado."
+									 tableStyle="table-layout:auto" styleClass="reflowTable">
+
+							<f:facet name="header">
+								<p:inputText id="globalFilter" onkeyup="PF('modelUsuario').filter()"
+											 placeholder="Filtrar"/>
+							</f:facet>
+
+							<p:column headerText="#" width="50" styleClass="centralizar">
+								#{rowIndex+1}
+							</p:column>
+
+							<p:column width="100" headerText="Perfis">
+								<p:rowToggler/>
+							</p:column>
+
+							<p:column headerText="Nome" filterBy="#{model.pessoa.nome}" filterMatchMode="contains"
+									  sortBy="#{model.pessoa.nome}">
+								<p:outputLabel value="#{model.pessoa.nome}" converter="nomeConverter"/>
+							</p:column>
+
+							<p:column headerText="CPF" filterBy="#{model.pessoa.cpf}"
+									  filterMatchMode="contains" styleClass="centralizar"
+									  sortBy="#{model.pessoa.cpf}">
+								<p:outputLabel value="#{model.pessoa.cpfFormatado}"/>
+							</p:column>
+
+							<p:column headerText="Ativo" styleClass="centralizar" width="80">
+								<p:outputLabel value="#{model.ativo ? 'Sim' : 'Não'}"/>
+							</p:column>
+
+							<p:column headerText="Ações" width="90" styleClass="centralizar">
+								<p:menuButton value="">
+									<p:menuitem value="Editar" icon="fa fa-pencil-square-o"
+												outcome="pretty:editar-usuario"
+												title="Editar dados do usuário">
+										<f:param name="idElemento" value="#{model.id}"/>
+									</p:menuitem>
+
+									<p:menuitem value="Desativar" icon="fa fa-user-times"
+												oncomplete="PF('confirmarDesativar').show()"
+												rendered="#{model.ativo}"
+												update="form_1:confirmarDesativar" title="Desativar o usuário">
+										<f:setPropertyActionListener value="#{model}"
+																	 target="#{usuarioController.vrUsuario}"/>
+									</p:menuitem>
+
+									<p:menuitem value="Ativar" icon="fa fa-check-square-o"
+												oncomplete="PF('confirmarAtivar').show()"
+												rendered="#{model.ativo eq false}"
+												update="form_1:confirmarAtivar" title="Ativar o usuário">
+										<f:setPropertyActionListener value="#{model}"
+																	 target="#{usuarioController.vrUsuario}"/>
+									</p:menuitem>
+								</p:menuButton>
+							</p:column>
+
+							<p:rowExpansion>
+								<p:dataTable value="#{model.perfilUsuarioList}" paginator="true" rows="5"
+											 widgetVar="modelPerfil"
+											 paginatorAlwaysVisible="false" emptyMessage="Nenhum registro encontrado."
+											 var="perfilUsuario">
+									<p:column headerText="Perfil">
+										<p:outputLabel styleClass="reflowx" value="#{perfilUsuario.perfil.nome}"/>
+									</p:column>
+								</p:dataTable>
+							</p:rowExpansion>
+						</p:dataTable>
+					</h:panelGroup>
+				</div>
+			</div>
+
+			<!-- Dialog para desativar o usuario -->
+			<p:dialog id="confirmarDesativar" widgetVar="confirmarDesativar" header="Desativar o Usuário"
+					  modal="true" responsive="true" resizable="false" draggable="false"
+					  dynamic="true" closeOnEscape="true" styleClass="dialog-dinamico">
+
+				<h:panelGroup layout="block" styleClass="ui-fluid">
+					<p:outputLabel
+							value="Deseja realmente desativar o usuário "/>
+					<p:outputLabel styleClass="texto-negrito"
+								   value="#{usuarioController.vrUsuario.pessoa.nome}?"/>
+				</h:panelGroup>
+
+				<f:facet name="footer">
+					<p:commandButton value="Cancelar" icon="fa fa-times-circle-o" ajax="false"
+									 title="Cancelar Ação"
+									 onclick="PF('confirmarDesativar').hide(); return false;"/>
+
+					<p:commandButton value="Confirmar" icon="fa fa-check-circle-o" update="form_1"
+									 title="Confirmar Ação"
+									 actionListener="#{usuarioController.desativarUsuario}"
+									 oncomplete="PF('confirmarDesativar').hide()"/>
+				</f:facet>
+			</p:dialog>
+
+			<!-- Dialog para ativar o usuario -->
+			<p:dialog id="confirmarAtivar" widgetVar="confirmarAtivar" header="Ativar o Usuário"
+					  modal="true" responsive="true" resizable="false" draggable="false"
+					  dynamic="true" closeOnEscape="true" styleClass="dialog-dinamico">
+
+				<h:panelGroup layout="block" styleClass="ui-fluid">
+					<p:outputLabel
+							value="Deseja realmente ativar o usuário "/>
+					<p:outputLabel styleClass="texto-negrito"
+								   value="#{usuarioController.vrUsuario.pessoa.nome}?"/>
+				</h:panelGroup>
+
+				<f:facet name="footer">
+					<p:commandButton value="Cancelar" icon="fa fa-times-circle-o" ajax="false"
+									 title="Cancelar Ação"
+									 onclick="PF('confirmarAtivar').hide(); return false;"/>
+
+					<p:commandButton value="Confirmar" icon="fa fa-check-circle-o" update="form_1"
+									 title="Confirmar Ação"
+									 actionListener="#{usuarioController.ativarUsuario}"
+									 oncomplete="PF('confirmarAtivar').hide()"/>
+				</f:facet>
+			</p:dialog>
+		</h:form>
+	</ui:define>
+</ui:composition>

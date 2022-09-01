@@ -1,0 +1,137 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://xmlns.jcp.org/jsf/html"
+                xmlns:f="http://xmlns.jcp.org/jsf/core"
+                xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+                xmlns:p="http://primefaces.org/ui"
+                template="/templates/index.xhtml">
+
+    <ui:define name="title">
+        Examples
+    </ui:define>
+
+    <ui:define name="breadcrumb">
+        <h:form id="breadCrumb">
+            <p:breadCrumb>
+                <p:menuitem value="home" url="/index.xhtml"/>
+                <p:menuitem value="Examples" url=""/>
+            </p:breadCrumb>
+        </h:form>
+    </ui:define>
+
+    <ui:define name="content">
+        <h:form id="form_1">
+            <div class="card">
+                <h1>Exemple</h1>
+
+                <!-- DataTable -->
+                <p:dataTable id="dataTable1" widgetVar="w_model"
+                             value="#{perfilController.vrListaPerfil}" var="model" rows="30"
+                             paginator="true" paginatorAlwaysVisible="false" rowIndexVar="rowIndex"
+                             reflow="true" rowKey="#{model.id}"
+                             emptyMessage="Nenhum registro encontrado."
+                             tableStyle="table-layout:auto" styleClass="reflowTable">
+
+                    <f:facet name="header">
+                        <p:inputText id="globalFilter" onkeyup="PF('w_model').filter()" placeholder="Filtrar"/>
+                    </f:facet>
+
+                    <p:column headerText="#" styleClass="centralizar" width="50">
+                        #{rowIndex+1}
+                    </p:column>
+                    <p:column headerText="Nome"
+                              filterBy="#{model.nome}" filterMatchMode="contains" sortBy="#{model.nome}">
+                        <p:outputLabel value="#{model.nome}"/>
+                    </p:column>
+                    <p:column headerText="Tipo" styleClass="centralizar"
+                              filterBy="#{model.nome}" filterMatchMode="contains" sortBy="#{model.nome}">
+                        <p:outputLabel value="#{model.nivel}"/>
+                    </p:column>
+                    <p:column headerText="Ações" styleClass="centralizar">
+                        <p:menuButton value="">
+                            <p:menuitem value="Editar" icon="fa fa-pencil"
+                                        action="#{perfilController.gotoPerfilEdit(model.id)}"
+                                        title="Editar dados do vrPerfil."/>
+                            <p:menuitem value="Excluir" icon="fa fa-trash"
+                                        oncomplete="PF('confirmarExcluir').show()"
+                                        update="form_1:dialogExcluir" title="Excluir vrPerfil">
+                                <f:setPropertyActionListener value="#{model}" target="#{perfilController.vrPerfil}"/>
+                            </p:menuitem>
+                        </p:menuButton>
+                    </p:column>
+                </p:dataTable>
+
+                <!-- action-button-group -->
+                <h:panelGroup layout="block" styleClass="action-button-group">
+                    <p:commandButton value="Cancelar" icon="ui-icon-highlight-off"
+                                     title="Cancelar" update="form_1" immediate="true"
+                                     actionListener="#{gedController.limparListaArquivosLink}"/>
+                    <p:commandButton value="Salvar" icon="ui-icon-save"
+                                     title="Salvar" update="form_1"
+                                     actionListener="#{gedController.salvarLinkDocumento}"/>
+                </h:panelGroup>
+
+                <!-- md-inputfield -->
+                <h:panelGroup styleClass="md-inputfield">
+                    <p:inputText id="link" value="#{gedController.ged.linkArquivo}"
+                                 required="true" requiredMessage="Campo 'Link' obrigatório."/>
+                    <p:outputLabel value="Link" for="link"/>
+                </h:panelGroup>
+
+                <!-- DataGrid -->
+                <p:dataGrid id="listaDocumentoPdf" widgetVar="dtgridDocumento"
+                            value="#{gedController.listaGed}" var="documento" type="definition"
+                            emptyMessage="Nenhum Arquivo Anexado" columns="3" layout="grid"
+                            styleClass="lista-documentos"
+                            paginatorAlwaysVisible="false" reflow="true" rows="30" paginator="true">
+
+                    <f:facet name="header">
+                        <p:inputText id="nomeDocumento" value="#{gedController.sPesquisarDocumento}"
+                                     placeholder="Filtrar">
+                            <p:ajax event="keyup" update="listaDocumentoPdf"
+                                    listener="#{gedController.pesquisarDocumento}"/>
+                        </p:inputText>
+                    </f:facet>
+
+                    <p:fieldset class="centralizar">
+                        <p:panelGrid layout="grid" columns="1" style="width:100%">
+                            <!-- PDF -->
+                            <p:commandLink
+                                    actionListener="#{gedController.downloadArquivo(documento)}"
+                                    ajax="false" styleClass="commandlink-icon-fa fa fa-file-pdf-o"
+                                    target="_blank"
+                                    rendered="#{documento.tipo.equals('pdf')}"/>
+                            <p:outputLabel styleClass="negrito" value="#{documento.nomeArquivo}"
+                                           style="word-break: break-all"/>
+                            <!-- Botões -->
+                            <ui:fragment>
+                                <p:commandButton ajax="false" icon="fa fa-download"
+                                                 title="Download do arquivo"
+                                                 onclick="this.form.target = '_blank'"
+                                                 value="Download"
+                                                 actionListener="#{gedController.downloadArquivo(documento)}"/>
+                            </ui:fragment>
+
+                        </p:panelGrid>
+                    </p:fieldset>
+                </p:dataGrid>
+
+                <!-- Dialog -->
+                <p:dialog id="confirmarExclusao" widgetVar="dlg1" header="Excluir Documento"
+                          modal="true" responsive="true" resizable="false" draggable="false"
+                          dynamic="true" closeOnEscape="true" styleClass="dialog-dinamico">
+                    <p:panelGrid layout="grid" columns="1">
+                        <p:outputLabel
+                                value="Tem certeza que deseja excluir este Documento? Essa operação não poderá ser desfeita."/>
+                    </p:panelGrid>
+                    <f:facet name="footer">
+                        <p:commandButton value="Cancelar" icon="fa fa-times-circle-o" ajax="false"
+                                         onclick="PF('confirmarExclusao').hide(); return false;"/>
+                        <p:commandButton value="Confirmar" icon="fa fa-check-circle-o" update="form_1"
+                                         actionListener="#{gedController.excluirArquivo(gedController.gedExcluir)}"
+                                         oncomplete="PF('confirmarExclusao').hide()"/>
+                    </f:facet>
+                </p:dialog>
+            </div>
+        </h:form>
+    </ui:define>
+</ui:composition>

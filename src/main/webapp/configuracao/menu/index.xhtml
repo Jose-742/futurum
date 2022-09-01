@@ -1,0 +1,202 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://xmlns.jcp.org/jsf/html"
+                xmlns:f="http://xmlns.jcp.org/jsf/core"
+                xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+                xmlns:p="http://primefaces.org/ui"
+                template="/templates/index.xhtml">
+
+	<f:metadata>
+		<f:viewAction action="#{menuController.preRenderListar}"/>
+	</f:metadata>
+
+	<ui:define name="breadcrumb">
+		<h:form>
+			<p:breadCrumb>
+				<p:menuitem value="Home" outcome="pretty:pagina-inicial"/>
+				<p:menuitem value="Gerenciar Menu" url=""/>
+			</p:breadCrumb>
+		</h:form>
+	</ui:define>
+
+	<ui:define name="content">
+		<h:form id="form_1">
+			<div class="card">
+				<h1>Lista de Menus</h1>
+				<p:messages id="messages" closable="true">
+					<p:autoUpdate/>
+				</p:messages>
+
+				<div class="ui-g">
+					<h:panelGroup layout="block" styleClass="ui-g-12 action-button-group-left">
+						<p:commandButton value="Adicionar" icon="ui-icon-add" title="Adicionar novo menu"
+						                 action="pretty:novo-menu"/>
+					</h:panelGroup><br/>
+
+					<h:panelGroup layout="block" styleClass="ui-g-12">
+						<p:dataTable id="dataTableMenu" widgetVar="modelMenu"
+						             value="#{menuController.vrLazyListaMenu}" var="model" rows="10"
+						             paginator="true" paginatorAlwaysVisible="false" rowIndexVar="rowIndex"
+						             reflow="true" rowKey="#{model.id}" lazy="true"
+						             emptyMessage="Nenhum registro encontrado."
+						             tableStyle="table-layout:auto" styleClass="reflowTable">
+
+							<f:facet name="header">
+								<p:inputText id="globalFilter" onkeyup="PF('modelMenu').filter()"
+								             placeholder="Filtrar"/>
+							</f:facet>
+
+							<p:column headerText="#" width="50" styleClass="centralizar">
+								#{rowIndex+1}
+							</p:column>
+
+							<p:column headerText="Descrição" sortBy="#{model.descricao}" filterBy="#{model.descricao}"
+							          filterMatchMode="contains">
+								<p:outputLabel value="#{model.descricao}"/>
+							</p:column>
+
+							<p:column headerText="Menu Pai" sortBy="#{model.pai.descricao}"
+							          filterBy="#{model.pai.descricao}" filterMatchMode="contains">
+								<p:outputLabel value="#{model.pai.descricao eq null ? '-' : model.pai.descricao}"/>
+							</p:column>
+
+							<p:column headerText="URL" filterBy="#{model.url}" filterMatchMode="contains">
+								<p:outputLabel value="#{model.url}"/>
+							</p:column>
+
+							<p:column headerText="Ativo" width="110" styleClass="centralizar">
+								<p:outputLabel value="#{model.ativo eq true ? 'Sim' : 'Não'}"/>
+							</p:column>
+
+							<p:column headerText="Ações" width="90" styleClass="centralizar">
+								<p:menuButton value="">
+									<p:menuitem value="Ativar" icon="fa fa-check-square-o"
+									            rendered="#{model.ativo eq false}"
+									            oncomplete="PF('confirmarAtivacao').show()"
+									            update="form_1:confirmarAtivacao" title="Ativar o menu">
+										<f:setPropertyActionListener value="#{model}"
+										                             target="#{menuController.vrMenu}"/>
+									</p:menuitem>
+
+									<p:menuitem value="Desativar" icon="fa fa-ban" rendered="#{model.ativo eq true}"
+									            oncomplete="PF('confirmarDesativacao').show()"
+									            update="form_1:confirmarDesativacao" title="Desativar o menu">
+										<f:setPropertyActionListener value="#{model}"
+										                             target="#{menuController.vrMenu}"/>
+									</p:menuitem>
+
+									<p:menuitem value="Editar" icon="fa fa-pencil-square-o"
+									            outcome="pretty:editar-menu"
+									            title="Editar dados do menu">
+										<f:param name="idElemento" value="#{model.id}"/>
+									</p:menuitem>
+
+									<p:menuitem value="Excluir" icon="fa fa-trash"
+									            rendered="#{model.existeFilho eq false}"
+									            oncomplete="PF('confirmarExcluir').show()"
+									            update="form_1:confirmarExcluir" title="Excluir o menu">
+										<f:setPropertyActionListener value="#{model}"
+										                             target="#{menuController.vrMenu}"/>
+									</p:menuitem>
+
+									<p:menuitem value="Excluir" icon="fa fa-trash" rendered="#{model.existeFilho}"
+									            oncomplete="PF('confirmarAvisoNaoExcluir').show()"
+									            update="form_1:confirmarAvisoNaoExcluir" title="Excluir o menu"/>
+								</p:menuButton>
+							</p:column>
+						</p:dataTable>
+					</h:panelGroup>
+				</div>
+			</div>
+
+			<!-- Dialog de excluir o menu -->
+			<p:dialog id="confirmarExcluir" widgetVar="confirmarExcluir" header="Excluir o Menu"
+			          modal="true" responsive="true" resizable="false" draggable="false"
+			          dynamic="true" closeOnEscape="true" styleClass="dialog-dinamico">
+
+				<h:panelGroup layout="block" styleClass="ui-fluid">
+					<p:outputLabel
+							value="Tem certeza que deseja excluir o menu "/>
+					<p:outputLabel styleClass="texto-negrito"
+					               value="#{menuController.vrMenu.descricao}?"/>
+				</h:panelGroup>
+
+				<f:facet name="footer">
+					<p:commandButton value="Cancelar" icon="fa fa-times-circle-o" ajax="false"
+									 title="Cancelar Ação"
+					                 onclick="PF('confirmarExcluir').hide(); return false;" />
+
+					<p:commandButton value="Confirmar" icon="fa fa-check-circle-o" update="form_1"
+									 title="Confirmar Ação"
+					                 actionListener="#{menuController.deletarMenu}"
+					                 oncomplete="PF('confirmarExcluir').hide()" />
+				</f:facet>
+			</p:dialog>
+
+			<!-- Dialog de desativação do menu -->
+			<p:dialog id="confirmarDesativacao" widgetVar="confirmarDesativacao" header="Desativar o Menu"
+			          modal="true" responsive="true" resizable="false" draggable="false"
+			          dynamic="true" closeOnEscape="true" styleClass="dialog-dinamico">
+
+				<h:panelGroup layout="block" styleClass="ui-fluid">
+					<p:outputLabel
+							value="Tem certeza que deseja desativar o menu "/>
+					<p:outputLabel styleClass="texto-negrito"
+					               value="#{menuController.vrMenu.descricao}?"/>
+				</h:panelGroup>
+
+				<f:facet name="footer">
+					<p:commandButton value="Cancelar" icon="fa fa-times-circle-o" ajax="false"
+									 title="Cancelar Ação"
+					                 onclick="PF('confirmarDesativacao').hide(); return false;" />
+
+					<p:commandButton value="Confirmar" icon="fa fa-check-circle-o" update="form_1"
+									 title="Confirmar Ação"
+					                 actionListener="#{menuController.desativarMenu}"
+					                 oncomplete="PF('confirmarDesativacao').hide()" />
+				</f:facet>
+			</p:dialog>
+
+			<!-- Dialog de ativação do menu -->
+			<p:dialog id="confirmarAtivacao" widgetVar="confirmarAtivacao" header="Ativar o Menu"
+			          modal="true" responsive="true" resizable="false" draggable="false"
+			          dynamic="true" closeOnEscape="true" styleClass="dialog-dinamico">
+
+				<h:panelGroup layout="block" styleClass="ui-fluid">
+					<p:outputLabel
+							value="Tem certeza que deseja ativar o menu "/>
+					<p:outputLabel styleClass="texto-negrito"
+					               value="#{menuController.vrMenu.descricao}?"/>
+				</h:panelGroup>
+
+				<f:facet name="footer">
+					<p:commandButton value="Cancelar" icon="fa fa-times-circle-o" ajax="false"
+									 title="Cancelar Ação"
+					                 onclick="PF('confirmarAtivacao').hide(); return false;" />
+
+					<p:commandButton value="Confirmar" icon="fa fa-check-circle-o" update="form_1"
+									 title="Confirmar Ação"
+					                 actionListener="#{menuController.ativarMenu}"
+					                 oncomplete="PF('confirmarAtivacao').hide()" />
+				</f:facet>
+			</p:dialog>
+
+			<!-- Dialog de aviso que não pode excluir um menu pai se houver filhos -->
+			<p:dialog id="confirmarAvisoNaoExcluir" widgetVar="confirmarAvisoNaoExcluir"
+			          header="Aviso Sobre Exclusão do Menu"
+			          modal="true" responsive="true" resizable="false" draggable="false"
+			          dynamic="true" closeOnEscape="true" styleClass="dialog-dinamico">
+
+				<h:panelGroup layout="block" styleClass="ui-fluid">
+					<p:outputLabel
+							value="Não é permitido a exclusão do menu, pois existe filho associado a ele."/>
+				</h:panelGroup>
+
+				<f:facet name="footer">
+					<p:commandButton value="Confirmar" icon="fa fa-check-circle-o" ajax="false"
+									 title="Confirmar Ação"
+					                 onclick="PF('confirmarAvisoNaoExcluir').hide(); return false;"/>
+				</f:facet>
+			</p:dialog>
+		</h:form>
+	</ui:define>
+</ui:composition>

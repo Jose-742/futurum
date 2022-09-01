@@ -1,0 +1,123 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://xmlns.jcp.org/jsf/html"
+                xmlns:f="http://xmlns.jcp.org/jsf/core"
+                xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+                xmlns:p="http://primefaces.org/ui"
+                template="/templates/index.xhtml">
+
+	<f:metadata>
+		<f:viewAction action="#{versionamentoController.preRenderListar}"/>
+	</f:metadata>
+
+	<ui:define name="breadcrumb">
+		<h:form>
+			<p:breadCrumb>
+				<p:menuitem value="Home" outcome="pretty:pagina-inicial"/>
+				<p:menuitem value="Gerenciar Versionamento" url=""/>
+			</p:breadCrumb>
+		</h:form>
+	</ui:define>
+
+	<ui:define name="content">
+		<h:form id="form_1">
+			<div class="card">
+				<h1>Lista de Versionamentos</h1>
+				<p:messages id="messages" closable="true">
+					<p:autoUpdate/>
+				</p:messages>
+
+				<div class="ui-g">
+					<h:panelGroup layout="block" styleClass="ui-g-12 action-button-group-left">
+						<p:commandButton value="Adicionar" icon="ui-icon-add" title="Adicionar novo versionamento"
+						                 action="pretty:novo-versionamento"/>
+					</h:panelGroup><br/>
+
+					<h:panelGroup layout="block" styleClass="ui-g-12">
+						<p:dataTable id="dataTableMenu" widgetVar="modelMenu"
+						             value="#{versionamentoController.vrLazyListaVersionamento}" var="model" rows="10"
+						             paginator="true" paginatorAlwaysVisible="false" rowIndexVar="rowIndex"
+						             reflow="true" rowKey="#{model.id}" lazy="true"
+						             emptyMessage="Nenhum registro encontrado."
+						             tableStyle="table-layout:auto" styleClass="reflowTable">
+
+							<f:facet name="header">
+								<p:inputText id="globalFilter" onkeyup="PF('modelMenu').filter()"
+								             placeholder="Filtrar"/>
+							</f:facet>
+
+							<p:column headerText="#" width="50" styleClass="centralizar">
+								#{rowIndex+1}
+							</p:column>
+
+							<p:column headerText="Usuário" sortBy="#{model.usuario.pessoa.nome}"
+							          filterBy="#{model.usuario.pessoa.nome}"
+							          filterMatchMode="contains">
+								<p:outputLabel value="#{model.usuario.pessoa.nome}"/>
+							</p:column>
+
+							<p:column headerText="Versão" sortBy="#{model.versao}"
+							          filterBy="#{model.versao}"
+							          filterMatchMode="contains">
+								<p:outputLabel value="#{model.versao}"/>
+							</p:column>
+
+							<p:column headerText="Data e Hora do Cadastro" sortBy="#{model.dataHoraCadastro}"
+							          filterBy="#{model.dataHoraCadastro}"
+							          filterMatchMode="contains">
+								<p:outputLabel value="#{model.dataHoraCadastro}"/>
+							</p:column>
+
+							<p:column headerText="Tipo de Versão" sortBy="#{model.tipoVersao}"
+							          filterBy="#{model.tipoVersao}"
+							          filterMatchMode="contains">
+								<p:outputLabel value="#{model.tipoVersao}"/>
+							</p:column>
+
+							<p:column headerText="Ações" width="90" styleClass="centralizar">
+								<p:menuButton value="">
+									<p:menuitem value="Editar" icon="fa fa-pencil-square-o"
+									            outcome="pretty:editar-menu"
+									            title="Editar dados do menu">
+										<f:param name="idElemento" value="#{model.id}"/>
+									</p:menuitem>
+
+									<p:menuitem value="Excluir" icon="fa fa-trash"
+									            oncomplete="PF('confirmarExcluir').show()"
+									            update="form_1:confirmarExcluir" title="Excluir o menu">
+										<f:setPropertyActionListener value="#{model}"
+										                             target="#{menuController.vrMenu}"/>
+									</p:menuitem>
+								</p:menuButton>
+							</p:column>
+						</p:dataTable>
+					</h:panelGroup>
+				</div>
+			</div>
+
+			<!-- Dialog de excluir o menu -->
+			<p:dialog id="confirmarExcluir" widgetVar="confirmarExcluir" header="Excluir o Menu"
+			          modal="true" responsive="true" resizable="false" draggable="false"
+			          dynamic="true" closeOnEscape="true" styleClass="dialog-dinamico">
+
+				<h:panelGroup layout="block" styleClass="ui-fluid">
+					<p:outputLabel
+							value="Tem certeza que deseja excluir o menu "/>
+					<p:outputLabel styleClass="texto-negrito"
+					               value="#{menuController.vrMenu.descricao}?"/>
+				</h:panelGroup>
+
+				<f:facet name="footer">
+					<p:commandButton value="Cancelar" icon="fa fa-times-circle-o" ajax="false"
+									 title="Cancelar Ação"
+					                 onclick="PF('confirmarExcluir').hide(); return false;" />
+
+					<p:commandButton value="Confirmar" icon="fa fa-check-circle-o" update="form_1"
+									 title="Confirmar Ação"
+					                 actionListener="#{menuController.deletarMenu}"
+					                 oncomplete="PF('confirmarExcluir').hide()"/>
+				</f:facet>
+			</p:dialog>
+
+		</h:form>
+	</ui:define>
+</ui:composition>
